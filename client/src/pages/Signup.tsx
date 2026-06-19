@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 
 export default function Signup() {
@@ -46,6 +46,33 @@ export default function Signup() {
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message || "Failed to create an account");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError("");
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+  
+      // Create a Firestore profile if this is their first time signing in
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", user.uid), {
+          fullName: user.displayName || "",
+          email: user.email,
+          role: "renter",
+          createdAt: new Date().toISOString(),
+        });
+      }
+  
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError("Google sign-in failed");
     } finally {
       setLoading(false);
     }
@@ -95,6 +122,12 @@ export default function Signup() {
 
         <button type="submit" disabled={loading}>
           {loading ? "Creating account..." : "Sign Up"}
+        </button>
+
+        <div className="divider">or</div>
+
+        <button type="button" onClick={handleGoogleSignIn} disabled={loading} className="google-btn">
+          Continue with Google
         </button>
 
         <p className="auth-switch">
