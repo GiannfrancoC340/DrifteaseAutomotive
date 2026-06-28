@@ -16,7 +16,7 @@ export default function Dashboard() {
     <div className="page">
       <h1>Welcome, {currentUser?.displayName || currentUser?.email}</h1>
       <p>This is your dashboard. We'll build this out next.</p>
-      <button onClick={handleLogout}>Log Out</button>
+      <button className="dashboard-logout" onClick={handleLogout}>Log Out</button>
     </div>
   );
 }

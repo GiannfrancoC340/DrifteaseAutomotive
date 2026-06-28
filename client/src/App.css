@@ -37,3 +37,21 @@ body {
   background-color: #357abd;
   transform: translateY(-2px);
 }
+
+.dashboard-logout {
+  margin-top: 24px;
+  padding: 12px 24px;
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.dashboard-logout:hover {
+  background-color: #357abd;
+  transform: translateY(-1px);
+}
