@@ -30,5 +30,10 @@ body {
   text-decoration: none;
   border-radius: 6px;
   font-weight: 600;
+  transition: background-color 0.2s, transform 0.15s;
 }
 
+.home-actions a:hover {
+  background-color: #357abd;
+  transform: translateY(-2px);
+}
