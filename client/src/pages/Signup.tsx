@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleA
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import "./Signup.css";
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
@@ -23,6 +24,33 @@ export default function Signup() {
     }
   }, [currentUser, navigate]);
 
+  // Password validation function
+  const validatePassword = (pass: string): string[] => {
+    const errors = []
+    
+    if (pass.length < 8) {
+      errors.push('At least 8 characters')
+    }
+    
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) {
+      errors.push('At least 1 special character (!@#$%^&*)')
+    }
+    
+    if (!/[A-Z]/.test(pass)) {
+      errors.push('At least 1 uppercase letter')
+    }
+    
+    if (!/[a-z]/.test(pass)) {
+      errors.push('At least 1 lowercase letter')
+    }
+    
+    if (!/[0-9]/.test(pass)) {
+      errors.push('At least 1 number')
+    }
+    
+    return errors
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
@@ -32,8 +60,9 @@ export default function Signup() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      setError(`Password must have: ${passwordErrors.join(", ")}`);
       return;
     }
 
@@ -128,6 +157,30 @@ export default function Signup() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
         />
+
+        {/* Password Requirements Display */}
+        {password.length > 0 && (
+              <div className="password-requirements">
+                <p className="requirements-title">Password must contain:</p>
+                <ul>
+                  <li className={password.length >= 8 ? 'requirement-met' : 'requirement-unmet'}>
+                    {password.length >= 8 ? '✓' : '○'} At least 8 characters
+                  </li>
+                  <li className={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[!@#$%^&*(),.?":{}|<>]/.test(password) ? '✓' : '○'} At least 1 special character (!@#$%^&*)
+                  </li>
+                  <li className={/[A-Z]/.test(password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[A-Z]/.test(password) ? '✓' : '○'} At least 1 uppercase letter
+                  </li>
+                  <li className={/[a-z]/.test(password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[a-z]/.test(password) ? '✓' : '○'} At least 1 lowercase letter
+                  </li>
+                  <li className={/[0-9]/.test(password) ? 'requirement-met' : 'requirement-unmet'}>
+                    {/[0-9]/.test(password) ? '✓' : '○'} At least 1 number
+                  </li>
+                </ul>
+              </div>
+            )}
 
         <button type="submit" disabled={loading}>
           {loading ? "Creating account..." : "Sign Up"}
