@@ -6,12 +6,14 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Vehicle from "./pages/Vehicle";
+import Navbar from "./components/Navbar";
 import "./App.css";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
