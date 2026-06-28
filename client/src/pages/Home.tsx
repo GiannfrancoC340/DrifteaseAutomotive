@@ -19,6 +19,7 @@ export default function Home() {
       <div className="home-actions">
         <Link to="/login">Log In</Link>
         <Link to="/signup">Sign Up</Link>
+        <Link to="/vehicle">View the Car</Link>
       </div>
     </div>
   );
