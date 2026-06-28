@@ -1,12 +1,17 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
+const HIDE_ON = ["/", "/login", "/signup"];
+
 export default function Navbar() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (HIDE_ON.includes(location.pathname)) return null;
 
   async function handleLogout() {
     await signOut(auth);
@@ -15,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-logo">Driftease</Link>
+      <Link to="/dashboard" className="navbar-logo">Driftease</Link>
       <div className="navbar-links">
         <Link to="/vehicle">View Car</Link>
         {currentUser ? (
