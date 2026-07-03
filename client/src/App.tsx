@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import Book from "./pages/Book";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
+import Profile from "./pages/Profile";
 import "./App.css";
 
 function App() {
@@ -51,6 +52,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Confirmation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
