@@ -7,6 +7,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Vehicle from "./pages/Vehicle";
 import Navbar from "./components/Navbar";
+import Book from "./pages/Book";
 import "./App.css";
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/book"
+            element={
+              <ProtectedRoute>
+                <Book />
               </ProtectedRoute>
             }
           />
