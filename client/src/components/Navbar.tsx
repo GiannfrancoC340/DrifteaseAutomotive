@@ -22,10 +22,11 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/dashboard" className="navbar-logo">Driftease</Link>
       <div className="navbar-links">
-        <Link to="/vehicle">View Car</Link>
         {currentUser ? (
           <>
+            <Link to="/vehicle">View Car</Link>
             <Link to="/dashboard">Dashboard</Link>
+            <Link to="/profile">Profile</Link>
             <button className="navbar-logout" onClick={handleLogout}>Log Out</button>
           </>
         ) : (
