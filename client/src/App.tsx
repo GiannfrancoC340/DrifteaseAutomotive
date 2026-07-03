@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Vehicle from "./pages/Vehicle";
 import Navbar from "./components/Navbar";
 import Book from "./pages/Book";
+import Checkout from "./pages/Checkout";
 import "./App.css";
 
 function App() {
@@ -33,6 +34,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Book />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
               </ProtectedRoute>
             }
           />
