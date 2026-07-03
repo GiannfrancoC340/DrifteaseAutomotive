@@ -4,7 +4,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { generateBookingId } from "../lib/generateId";
 import "./Checkout.css";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -52,7 +53,9 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Save booking to Firestore
       try {
-        const bookingRef = await addDoc(collection(db, "bookings"), {
+        const bookingId = generateBookingId();
+        const bookingRef = doc(db, "bookings", bookingId);
+        await setDoc(bookingRef, {
           renterId: currentUser?.uid,
           renterEmail: currentUser?.email,
           renterName: currentUser?.displayName,
@@ -73,7 +76,7 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
 
         navigate("/confirmation", {
           state: {
-            bookingId: bookingRef.id,
+            bookingId,
             ...bookingData,
           },
         });

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { generateUserId } from "../lib/generateId";
 import "./Signup.css";
 
 export default function Signup() {
@@ -74,7 +75,10 @@ export default function Signup() {
       await updateProfile(user, { displayName: fullName });
 
       // Create a user profile document in Firestore
+      const customUserId = await generateUserId();
+
       await setDoc(doc(db, "users", user.uid), {
+        customUserId,
         fullName,
         email,
         role: "renter",
@@ -98,15 +102,15 @@ export default function Signup() {
       const user = result.user;
   
       // Create a Firestore profile if this is their first time signing in
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (!userDoc.exists()) {
-        await setDoc(doc(db, "users", user.uid), {
-          fullName: user.displayName || "",
-          email: user.email,
-          role: "renter",
-          createdAt: new Date().toISOString(),
-        });
-      }
+      const customUserId = await generateUserId();
+
+      await setDoc(doc(db, "users", user.uid), {
+        customUserId,
+        fullName: user.displayName || "",
+        email: user.email,
+        role: "renter",
+        createdAt: new Date().toISOString(),
+      });
   
       navigate("/dashboard");
     } catch (err: any) {
