@@ -36,6 +36,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<div style={{ textAlign: "center", padding: "80px" }}><h1>404 - Page Not Found</h1></div>} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

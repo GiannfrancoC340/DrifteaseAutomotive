@@ -8,6 +8,7 @@ export default function Book() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [paymentOption, setPaymentOption] = useState<"full" | "deposit">("full");
+  const [depositPercent, setDepositPercent] = useState(30);
 
   const { startDate, endDate, totalPrice } = location.state || {};
 
@@ -20,7 +21,7 @@ export default function Book() {
   const start = new Date(startDate);
   const end = new Date(endDate);
   const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const depositAmount = Math.round(totalPrice * 0.3);
+  const depositAmount = Math.round(totalPrice * depositPercent / 100);
   const remainingAmount = totalPrice - depositAmount;
   const amountDueNow = paymentOption === "full" ? totalPrice : depositAmount;
 
@@ -34,6 +35,7 @@ export default function Book() {
         paymentOption,
         depositAmount,
         remainingAmount,
+        depositPercent,
       },
     });
   }
@@ -72,39 +74,76 @@ export default function Book() {
 
         {/* Payment Option */}
         <div className="book-section">
-          <h2>Payment Option</h2>
-          <div className="payment-options">
+        <h2>Payment Option</h2>
+        <div className="payment-options">
             <div
-              className={`payment-option ${paymentOption === "full" ? "selected" : ""}`}
-              onClick={() => setPaymentOption("full")}
+            className={`payment-option ${paymentOption === "full" ? "selected" : ""}`}
+            onClick={() => setPaymentOption("full")}
             >
-              <div className="option-header">
+            <div className="option-header">
                 <div className="option-radio">{paymentOption === "full" ? "●" : "○"}</div>
                 <div>
-                  <p className="option-title">Pay in Full</p>
-                  <p className="option-subtitle">Pay the entire amount now</p>
+                <p className="option-title">Pay in Full</p>
+                <p className="option-subtitle">Pay the entire amount now</p>
                 </div>
-              </div>
-              <p className="option-amount">${totalPrice}</p>
+            </div>
+            <p className="option-amount">${totalPrice}</p>
             </div>
 
             <div
-              className={`payment-option ${paymentOption === "deposit" ? "selected" : ""}`}
-              onClick={() => setPaymentOption("deposit")}
+            className={`payment-option ${paymentOption === "deposit" ? "selected" : ""}`}
+            onClick={() => setPaymentOption("deposit")}
             >
-              <div className="option-header">
+            <div className="option-header">
                 <div className="option-radio">{paymentOption === "deposit" ? "●" : "○"}</div>
                 <div>
-                  <p className="option-title">Pay Deposit Now</p>
-                  <p className="option-subtitle">30% now, remainder due at pickup</p>
+                <p className="option-title">Pay Custom Deposit</p>
+                <p className="option-subtitle">Choose how much to pay now</p>
                 </div>
-              </div>
-              <div className="option-amount-split">
-                <p className="option-amount">${depositAmount} <span>due now</span></p>
-                <p className="option-remaining">${remainingAmount} due at pickup</p>
-              </div>
             </div>
-          </div>
+            <div className="option-amount-split">
+                <p className="option-amount">${Math.round(totalPrice * depositPercent / 100)} <span>due now</span></p>
+                <p className="option-remaining">${totalPrice - Math.round(totalPrice * depositPercent / 100)} due at pickup</p>
+            </div>
+            </div>
+        </div>
+
+        {/* Deposit slider — only shown when deposit option is selected */}
+        {paymentOption === "deposit" && (
+            <div className="deposit-slider-container">
+            <div className="slider-header">
+                <span>Pay now</span>
+                <span className="slider-percent">{depositPercent}%</span>
+            </div>
+            <input
+                type="range"
+                min={10}
+                max={90}
+                step={5}
+                value={depositPercent}
+                onChange={(e) => setDepositPercent(Number(e.target.value))}
+                className="deposit-slider"
+            />
+            <div className="slider-labels">
+                <span>10%</span>
+                <span>90%</span>
+            </div>
+            <div className="slider-breakdown">
+                <div className="slider-breakdown-row">
+                <span>Due now ({depositPercent}%)</span>
+                <span>${Math.round(totalPrice * depositPercent / 100)}</span>
+                </div>
+                <div className="slider-breakdown-row">
+                <span>Due at pickup ({100 - depositPercent}%)</span>
+                <span>${totalPrice - Math.round(totalPrice * depositPercent / 100)}</span>
+                </div>
+                <div className="slider-breakdown-row total">
+                <span>Total</span>
+                <span>${totalPrice}</span>
+                </div>
+            </div>
+            </div>
+        )}
         </div>
 
         {/* Renter Info */}
