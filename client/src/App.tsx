@@ -9,6 +9,7 @@ import Vehicle from "./pages/Vehicle";
 import Navbar from "./components/Navbar";
 import Book from "./pages/Book";
 import Checkout from "./pages/Checkout";
+import Confirmation from "./pages/Confirmation";
 import "./App.css";
 
 function App() {
@@ -45,7 +46,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<div style={{ textAlign: "center", padding: "80px" }}><h1>404 - Page Not Found</h1></div>} />
+          <Route
+            path="/confirmation"
+            element={
+              <ProtectedRoute>
+                <Confirmation />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="*" 
+            element={
+              <div style={{ textAlign: "center", padding: "80px" }}>
+                <h1>404 - Page Not Found</h1>
+              </div>
+            } 
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
