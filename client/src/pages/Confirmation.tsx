@@ -101,21 +101,21 @@ export default function Confirmation() {
           <div className="next-steps-list">
             <div className="next-step">
               <div className="step-number">1</div>
-              <div>
+              <div className="step-content">
                 <p className="step-title">Await Approval</p>
                 <p className="step-desc">The host will review your booking and approve it within 24 hours.</p>
               </div>
             </div>
             <div className="next-step">
               <div className="step-number">2</div>
-              <div>
+              <div className="step-content">
                 <p className="step-title">Upload Your License</p>
                 <p className="step-desc">Upload the front and back of your driver's license from your dashboard.</p>
               </div>
             </div>
             <div className="next-step">
               <div className="step-number">3</div>
-              <div>
+              <div className="step-content">
                 <p className="step-title">Pick Up the Car</p>
                 <p className="step-desc">Take pre-trip photos before driving away to document the car's condition.</p>
               </div>
@@ -123,7 +123,7 @@ export default function Confirmation() {
             {paymentOption === "deposit" && (
               <div className="next-step">
                 <div className="step-number">4</div>
-                <div>
+                <div className="step-content">
                   <p className="step-title">Pay Remaining Balance</p>
                   <p className="step-desc">Pay ${remainingAmount} at pickup to complete your payment.</p>
                 </div>

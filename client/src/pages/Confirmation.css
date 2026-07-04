@@ -147,18 +147,24 @@
     flex-shrink: 0;
   }
   
+  .step-content {
+    flex: 1;
+  }
+
   .step-title {
     font-size: 14px;
     font-weight: 600;
     color: #1a1a2e;
     margin: 0 0 2px;
+    text-align: left;
   }
-  
+
   .step-desc {
     font-size: 13px;
     color: #888;
     margin: 0;
     line-height: 1.5;
+    text-align: left;
   }
   
   /* Actions */

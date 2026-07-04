@@ -1,5 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import "./Book.css";
 
@@ -9,6 +11,18 @@ export default function Book() {
   const { currentUser } = useAuth();
   const [paymentOption, setPaymentOption] = useState<"full" | "deposit">("full");
   const [depositPercent, setDepositPercent] = useState(30);
+  const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    async function fetchPhone() {
+      if (!currentUser) return;
+      const snap = await getDoc(doc(db, "users", currentUser.uid));
+      if (snap.exists()) {
+        setPhone(snap.data().phone || "");
+      }
+    }
+    fetchPhone();
+  }, [currentUser]);
 
   const { startDate, endDate, totalPrice } = location.state || {};
 
@@ -148,7 +162,7 @@ export default function Book() {
 
         {/* Renter Info */}
         <div className="book-section">
-          <h2>Renter</h2>
+          <h2>Renter Info</h2>
           <div className="summary-card">
             <div className="summary-row">
               <span>Name</span>
@@ -157,6 +171,10 @@ export default function Book() {
             <div className="summary-row">
               <span>Email</span>
               <span>{currentUser?.email}</span>
+            </div>
+            <div className="summary-row">
+              <span>Phone</span>
+              <span>{phone || "—"}</span>
             </div>
           </div>
         </div>
