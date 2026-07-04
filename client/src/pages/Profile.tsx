@@ -4,19 +4,42 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { db, auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import "./Profile.css";
 
 export default function Profile() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<string>("");
   const [customUserId, setCustomUserId] = useState("");
   const [memberSince, setMemberSince] = useState("");
+
+  // Original values to compare against
+  const [originalName, setOriginalName] = useState("");
+  const [originalPhone, setOriginalPhone] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
+  // Dirty state — true if user has unsaved changes
+  const isDirty = fullName !== originalName || phone !== originalPhone;
+
+  // Warn on browser refresh/close if dirty
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -29,6 +52,8 @@ export default function Profile() {
           setPhone(data.phone || "");
           setCustomUserId(data.customUserId || "");
           setMemberSince(data.createdAt || "");
+          setOriginalName(data.fullName || "");
+          setOriginalPhone(data.phone || "");
         }
       } catch (err) {
         console.error(err);
@@ -41,17 +66,25 @@ export default function Profile() {
 
   async function handleSave() {
     if (!currentUser) return;
+
+    // Validate phone if provided
+    if (phone && !isValidPhoneNumber(phone)) {
+      setPhoneError("Please enter a valid phone number");
+      return;
+    }
+
     setSaving(true);
     setError("");
     setSuccess(false);
+    setPhoneError("");
 
     try {
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        fullName,
-        phone,
-      });
-
+      await updateDoc(doc(db, "users", currentUser.uid), { fullName, phone });
       await updateProfile(auth.currentUser!, { displayName: fullName });
+
+      // Update originals so dirty state resets
+      setOriginalName(fullName);
+      setOriginalPhone(phone);
       setSuccess(true);
     } catch (err) {
       setError("Failed to save changes. Please try again.");
@@ -60,17 +93,51 @@ export default function Profile() {
     }
   }
 
+  function handleBack() {
+    if (isDirty) {
+      const choice = window.confirm(
+        "You have unsaved changes. Do you want to save before leaving?"
+      );
+      if (choice) {
+        handleSave().then(() => navigate("/dashboard"));
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate("/dashboard");
+    }
+  }
+
   if (loading) return <div className="profile-loading">Loading profile...</div>;
 
   return (
     <div className="profile-page">
       <div className="profile-container">
+
         <div className="profile-page-header">
           <h1>Edit Profile</h1>
-          <button className="back-link" onClick={() => navigate("/dashboard")}>
+          <button className="back-link" onClick={handleBack}>
             ← Back to Dashboard
           </button>
         </div>
+
+        {/* Unsaved changes banner */}
+        {isDirty && (
+          <div className="unsaved-banner">
+            ⚠️ You have unsaved changes
+            <div className="unsaved-actions">
+              <button className="unsaved-discard" onClick={() => {
+                setFullName(originalName);
+                setPhone(originalPhone);
+              }}>
+                Discard
+              </button>
+              <button className="unsaved-save" onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save Now"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Read-only info */}
         <div className="profile-section">
@@ -89,9 +156,7 @@ export default function Profile() {
               <span>
                 {memberSince
                   ? new Date(memberSince).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
+                      month: "long", day: "numeric", year: "numeric",
                     })
                   : "—"}
               </span>
@@ -112,27 +177,30 @@ export default function Profile() {
               placeholder="Your full name"
             />
 
-            <label htmlFor="phone">Phone Number</label>
-            <input
-              id="phone"
-              type="tel"
+            <label>Phone Number</label>
+            <PhoneInput
+              international
+              defaultCountry="US"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g. (555) 123-4567"
+              onChange={(val) => {
+                setPhone(val || "");
+                setPhoneError("");
+              }}
+              className="phone-input-wrapper"
             />
+            {phoneError && <p className="field-error">{phoneError}</p>}
           </div>
         </div>
 
         {error && <p className="profile-error">{error}</p>}
-        {success && <p className="profile-success">✓ Profile updated successfully</p>}
+        {success && !isDirty && (
+          <p className="profile-success">✓ Profile updated successfully</p>
+        )}
 
-        <button
-          className="save-btn"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "Save Changes"}
+        <button className="save-btn" onClick={handleSave} disabled={saving || !isDirty}>
+          {saving ? "Saving..." : isDirty ? "Save Changes" : "No Changes to Save"}
         </button>
+
       </div>
     </div>
   );

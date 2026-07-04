@@ -16,6 +16,7 @@
     "react": "^19.2.6",
     "react-calendar": "^6.0.1",
     "react-dom": "^19.2.6",
+    "react-phone-number-input": "^3.4.17",
     "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
@@ -24,6 +25,7 @@
     "@types/react": "^19.2.14",
     "@types/react-calendar": "^3.9.0",
     "@types/react-dom": "^19.2.3",
+    "@types/react-phone-number-input": "^3.0.17",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
