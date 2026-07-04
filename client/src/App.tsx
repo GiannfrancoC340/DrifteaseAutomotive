@@ -11,6 +11,7 @@ import Book from "./pages/Book";
 import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
 import Profile from "./pages/Profile";
+import BookingDetail from "./pages/BookingDetail";
 import "./App.css";
 
 function App() {
@@ -63,8 +64,16 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="*" 
+          <Route
+            path="/booking/:id"
+            element={
+              <ProtectedRoute>
+                <BookingDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="*"
             element={
               <div style={{ textAlign: "center", padding: "80px" }}>
                 <h1>404 - Page Not Found</h1>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useUserData } from "../hooks/useUserData";
 import type { Booking } from "../hooks/useUserData";
@@ -26,7 +26,7 @@ function BookingCard({ booking }: { booking: Booking }) {
   const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="booking-card">
+    <Link to={`/booking/${booking.id}`} className="booking-card">
       <div className="booking-card-header">
         <span className="booking-card-id">{booking.id}</span>
         <StatusBadge status={booking.status} />
@@ -73,7 +73,7 @@ function BookingCard({ booking }: { booking: Booking }) {
           <p className="action-note">✅ Approved — upload pre-trip photos at pickup</p>
         </div>
       )}
-    </div>
+    </Link>
   );
 }
 

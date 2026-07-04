@@ -122,6 +122,14 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+
+  .booking-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
   
   .booking-card-header {
