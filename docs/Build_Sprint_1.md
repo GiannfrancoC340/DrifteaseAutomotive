@@ -241,28 +241,49 @@ Firestore/
 
 ### Pictures
 
-<img width="718" height="260" alt="Screenshot 2026-07-04 at 3 28 51 PM" src="https://github.com/user-attachments/assets/72d598a2-1fd0-42d2-81a5-c7848d92a5fe" />
 <img width="1378" height="843" alt="Screenshot 2026-07-05 at 11 25 22 AM" src="https://github.com/user-attachments/assets/27bc4a4e-9709-4370-bab9-956f45b0206d" />
+
 <img width="1378" height="789" alt="Screenshot 2026-07-05 at 11 25 34 AM" src="https://github.com/user-attachments/assets/9d30ced0-3791-4245-a5e6-ac0f12148f64" />
+
 <img width="1374" height="788" alt="Screenshot 2026-07-05 at 11 25 47 AM" src="https://github.com/user-attachments/assets/af80b174-b0de-4df2-b41f-7002f300a6e0" />
+
 <img width="1378" height="792" alt="Screenshot 2026-07-05 at 11 26 02 AM" src="https://github.com/user-attachments/assets/2288a789-e809-41ac-bf94-aca150a1c66d" />
+
 <img width="1375" height="790" alt="Screenshot 2026-07-05 at 11 26 30 AM" src="https://github.com/user-attachments/assets/dc07c55f-e34b-4a62-9b4e-8e0e7b279f9c" />
+
 <img width="1372" height="790" alt="Screenshot 2026-07-05 at 11 27 07 AM" src="https://github.com/user-attachments/assets/45fc3628-1cd9-40f8-b3c3-5a26ecff79b0" />
+
 <img width="1372" height="786" alt="Screenshot 2026-07-05 at 11 27 14 AM" src="https://github.com/user-attachments/assets/7d230962-0c7b-493f-9246-25e7014fa504" />
+
 <img width="1378" height="787" alt="Screenshot 2026-07-05 at 11 27 28 AM" src="https://github.com/user-attachments/assets/8e842061-b3a3-4889-abc2-186bfd32561d" />
+
 <img width="1376" height="786" alt="Screenshot 2026-07-05 at 11 27 48 AM" src="https://github.com/user-attachments/assets/618182ed-2807-4ee0-8260-7348e08dcf69" />
+
 <img width="1375" height="787" alt="Screenshot 2026-07-05 at 11 27 57 AM" src="https://github.com/user-attachments/assets/479255e5-21ef-4463-8753-8a9dcbdc2a20" />
+
 <img width="1371" height="783" alt="Screenshot 2026-07-05 at 11 29 19 AM" src="https://github.com/user-attachments/assets/9e0ba693-2a52-4f41-a906-2aa1444ad5a1" />
+
 <img width="1366" height="784" alt="Screenshot 2026-07-05 at 11 30 38 AM" src="https://github.com/user-attachments/assets/f1eb09ac-2ef2-49ef-9672-f7fc67fc0fda" />
+
 <img width="1375" height="788" alt="Screenshot 2026-07-05 at 11 30 48 AM" src="https://github.com/user-attachments/assets/f15345ab-ed10-4668-8644-18ecc52f2ffb" />
+
 <img width="1373" height="785" alt="Screenshot 2026-07-05 at 11 30 56 AM" src="https://github.com/user-attachments/assets/0387ff0e-0c9a-4f0e-9e10-0854611eedf5" />
+
 <img width="1373" height="787" alt="Screenshot 2026-07-05 at 11 31 05 AM" src="https://github.com/user-attachments/assets/7a2fc03e-a25e-444c-8c18-39ec24b15d03" />
+
 <img width="1372" height="784" alt="Screenshot 2026-07-05 at 11 31 15 AM" src="https://github.com/user-attachments/assets/73521e8b-8b8b-4bbd-9230-a4bdf517f79e" />
+
 <img width="1377" height="791" alt="Screenshot 2026-07-05 at 11 33 31 AM" src="https://github.com/user-attachments/assets/45968809-ae63-4e74-a97f-4a5073d0e90f" />
+
 <img width="1374" height="786" alt="Screenshot 2026-07-05 at 11 33 54 AM" src="https://github.com/user-attachments/assets/2acdea19-d4be-400b-8d2f-d1add7355e55" />
+
 <img width="1374" height="785" alt="Screenshot 2026-07-05 at 11 34 08 AM" src="https://github.com/user-attachments/assets/a4c2cbfd-96fd-41f1-892f-62e7bc414abe" />
+
 <img width="1378" height="788" alt="Screenshot 2026-07-05 at 11 34 15 AM" src="https://github.com/user-attachments/assets/d9677db3-299f-4d2b-9ad6-7a28507cdd8e" />
+
 <img width="1377" height="784" alt="Screenshot 2026-07-05 at 11 34 25 AM" src="https://github.com/user-attachments/assets/47f468ee-d68a-4b3b-923b-ea8583ffce02" />
+
+<img width="718" height="260" alt="Screenshot 2026-07-04 at 3 28 51 PM" src="https://github.com/user-attachments/assets/72d598a2-1fd0-42d2-81a5-c7848d92a5fe" />
 
 ### Videos
 
