@@ -1,12 +1,13 @@
 import express from "express";
 import Stripe from "stripe";
 import dotenv from "dotenv";
+import { requireAuth, AuthedRequest } from "../middleware/auth";
 
 dotenv.config();
 
 const router = express.Router();
 
-router.post("/create-payment-intent", async (req, res) => {
+router.post("/create-payment-intent", requireAuth, async (req: AuthedRequest, res) => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
   try {
