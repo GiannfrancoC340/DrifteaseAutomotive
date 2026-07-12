@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAdminBookings } from "../hooks/useAdminBookings";
 import type { AdminBooking } from "../hooks/useAdminBookings";
+import { useAdminRenters } from "../hooks/useAdminRenters";
+import type { RenterProfile } from "../hooks/useAdminRenters";
 import "./Dashboard.css";
 
 function StatusBadge({ status }: { status: string }) {
@@ -14,6 +16,31 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`badge ${colors[status] || "badge-pending"}`}>
       {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+  );
+}
+
+function LicenseBadge({ status }: { status?: string }) {
+  const resolved = status || "not_started";
+  const colors: Record<string, string> = {
+    not_started: "badge-cancelled",
+    pending: "badge-pending",
+    processing: "badge-pending",
+    verified: "badge-completed",
+    failed: "badge-cancelled",
+    canceled: "badge-cancelled",
+  };
+  const labels: Record<string, string> = {
+    not_started: "Not Started",
+    pending: "Pending",
+    processing: "Processing",
+    verified: "Verified",
+    failed: "Failed",
+    canceled: "Canceled",
+  };
+  return (
+    <span className={`badge ${colors[resolved] || "badge-pending"}`}>
+      {labels[resolved] || resolved}
     </span>
   );
 }
@@ -137,7 +164,7 @@ function AdminBookingCard({
   );
 }
 
-export default function AdminDashboard() {
+function BookingsView() {
   const { bookings, loading, error, updateBookingStatus } = useAdminBookings();
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -151,53 +178,241 @@ export default function AdminDashboard() {
   }
 
   return (
+    <>
+      <p>{bookings.length} total booking{bookings.length !== 1 ? "s" : ""}</p>
+
+      {error && <p className="checkout-error">{error}</p>}
+
+      <div className="dashboard-tabs">
+        {["all", "pending", "approved", "active", "completed", "cancelled"].map(
+          (status) => (
+            <button
+              key={status}
+              className={`tab-btn ${statusFilter === status ? "active" : ""}`}
+              onClick={() => setStatusFilter(status)}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status !== "all" && (
+                <span className="tab-count">
+                  {bookings.filter((b) => b.status === status).length}
+                </span>
+              )}
+            </button>
+          )
+        )}
+      </div>
+
+      <div className="tab-content">
+        {filteredBookings.length === 0 ? (
+          <div className="empty-state">
+            <p>No bookings{statusFilter !== "all" ? ` with status "${statusFilter}"` : ""}</p>
+          </div>
+        ) : (
+          <div className="bookings-grid">
+            {filteredBookings.map((b) => (
+              <AdminBookingCard
+                key={b.id}
+                booking={b}
+                onUpdateStatus={updateBookingStatus}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function RenterDetailPanel({
+  renter,
+  onOverride,
+  onClose,
+}: {
+  renter: RenterProfile;
+  onOverride: (uid: string, status: "verified" | "failed") => Promise<void>;
+  onClose: () => void;
+}) {
+  const [updating, setUpdating] = useState(false);
+  const licenseStatus = renter.licenseVerification?.status || "not_started";
+
+  async function handleOverride(status: "verified" | "failed") {
+    setUpdating(true);
+    try {
+      await onOverride(renter.uid, status);
+    } catch {
+      // error already logged in the hook
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  return (
+    <div className="booking-card" style={{ marginTop: "1rem" }}>
+      <div className="booking-card-header">
+        <span className="booking-card-id">{renter.fullName || renter.email}</span>
+        <button className="navbar-logout" onClick={onClose} style={{ padding: "4px 12px" }}>
+          Close
+        </button>
+      </div>
+      <div className="booking-card-body">
+        <div className="booking-card-row">
+          <span>Email</span>
+          <span>{renter.email || "—"}</span>
+        </div>
+        <div className="booking-card-row">
+          <span>Phone</span>
+          <span>{renter.phone || "Not added"}</span>
+        </div>
+        <div className="booking-card-row">
+          <span>User ID</span>
+          <span>{renter.customUserId || "—"}</span>
+        </div>
+        <div className="booking-card-row">
+          <span>Member Since</span>
+          <span>
+            {renter.createdAt
+              ? new Date(renter.createdAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "—"}
+          </span>
+        </div>
+        <div className="booking-card-row">
+          <span>License Status</span>
+          <LicenseBadge status={licenseStatus} />
+        </div>
+        {renter.licenseVerification?.manualOverride && (
+          <div className="booking-card-row">
+            <span>Manually Reviewed By</span>
+            <span>{renter.licenseVerification.reviewedBy}</span>
+          </div>
+        )}
+        {renter.licenseVerification?.failureReason && (
+          <div className="booking-card-row">
+            <span>Failure Reason</span>
+            <span>{renter.licenseVerification.failureReason}</span>
+          </div>
+        )}
+      </div>
+      <div className="booking-card-actions" style={{ display: "flex", gap: "0.5rem" }}>
+        <button
+          className="pay-btn"
+          disabled={updating || licenseStatus === "verified"}
+          onClick={() => handleOverride("verified")}
+        >
+          {updating ? "Updating..." : "Mark Verified"}
+        </button>
+        <button
+          className="pay-btn"
+          disabled={updating || licenseStatus === "failed"}
+          onClick={() => handleOverride("failed")}
+        >
+          {updating ? "Updating..." : "Mark Failed"}
+        </button>
+      </div>
+      <p className="checkout-note" style={{ marginTop: "0.75rem" }}>
+        Manual overrides bypass Stripe Identity and should only be used when
+        verification was completed through another trusted method.
+      </p>
+    </div>
+  );
+}
+
+function RentersView() {
+  const { renters, loading, error, overrideLicenseStatus } = useAdminRenters();
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+
+  if (loading) {
+    return <div className="dashboard-loading">Loading renters...</div>;
+  }
+
+  const selectedRenter = renters.find((r) => r.uid === selectedUid) || null;
+
+  return (
+    <>
+      <p>{renters.length} total renter{renters.length !== 1 ? "s" : ""}</p>
+
+      {error && <p className="checkout-error">{error}</p>}
+
+      <div className="tab-content">
+        {renters.length === 0 ? (
+          <div className="empty-state">
+            <p>No renters found</p>
+          </div>
+        ) : (
+          <div className="bookings-grid">
+            {renters.map((renter) => (
+              <div
+                key={renter.uid}
+                className="booking-card"
+                style={{ cursor: "pointer" }}
+                onClick={() =>
+                  setSelectedUid(selectedUid === renter.uid ? null : renter.uid)
+                }
+              >
+                <div className="booking-card-header">
+                  <span className="booking-card-id">
+                    {renter.fullName || "Unnamed"}
+                  </span>
+                  <LicenseBadge status={renter.licenseVerification?.status} />
+                </div>
+                <div className="booking-card-body">
+                  <div className="booking-card-row">
+                    <span>Email</span>
+                    <span>{renter.email || "—"}</span>
+                  </div>
+                  <div className="booking-card-row">
+                    <span>Role</span>
+                    <span>{renter.role || "renter"}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {selectedRenter && (
+        <RenterDetailPanel
+          renter={selectedRenter}
+          onOverride={overrideLicenseStatus}
+          onClose={() => setSelectedUid(null)}
+        />
+      )}
+    </>
+  );
+}
+
+export default function AdminDashboard() {
+  const [view, setView] = useState<"bookings" | "renters">("bookings");
+
+  return (
     <div className="dashboard-page">
       <div className="dashboard-container">
         <div className="dashboard-header">
           <div>
             <h1>Admin Dashboard</h1>
-            <p>{bookings.length} total booking{bookings.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
 
-        {error && <p className="checkout-error">{error}</p>}
-
         <div className="dashboard-tabs">
-          {["all", "pending", "approved", "active", "completed", "cancelled"].map(
-            (status) => (
-              <button
-                key={status}
-                className={`tab-btn ${statusFilter === status ? "active" : ""}`}
-                onClick={() => setStatusFilter(status)}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-                {status !== "all" && (
-                  <span className="tab-count">
-                    {bookings.filter((b) => b.status === status).length}
-                  </span>
-                )}
-              </button>
-            )
-          )}
+          <button
+            className={`tab-btn ${view === "bookings" ? "active" : ""}`}
+            onClick={() => setView("bookings")}
+          >
+            Bookings
+          </button>
+          <button
+            className={`tab-btn ${view === "renters" ? "active" : ""}`}
+            onClick={() => setView("renters")}
+          >
+            Renters
+          </button>
         </div>
 
-        <div className="tab-content">
-          {filteredBookings.length === 0 ? (
-            <div className="empty-state">
-              <p>No bookings{statusFilter !== "all" ? ` with status "${statusFilter}"` : ""}</p>
-            </div>
-          ) : (
-            <div className="bookings-grid">
-              {filteredBookings.map((b) => (
-                <AdminBookingCard
-                  key={b.id}
-                  booking={b}
-                  onUpdateStatus={updateBookingStatus}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {view === "bookings" ? <BookingsView /> : <RentersView />}
       </div>
     </div>
   );
