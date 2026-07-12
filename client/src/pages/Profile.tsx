@@ -6,7 +6,7 @@ import { db, auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { MIN_RENTAL_AGE, calculateAge } from "../lib/renterEligibility";
+import { MIN_RENTAL_AGE, calculateAge, formatDriversLicenseNumber } from "../lib/renterEligibility";
 import "./Profile.css";
 
 export default function Profile() {
@@ -180,6 +180,11 @@ export default function Profile() {
     }
   }
 
+  // The FL-style dash grouping only matches Florida's license format - out
+  // of state renters (this business is FL-based, but renters can visit
+  // from anywhere) keep their number as plain freeform text instead.
+  const isFloridaLicense = licenseState === "" || licenseState === "FL";
+
   if (loading) return <div className="profile-loading">Loading profile...</div>;
 
   return (
@@ -276,15 +281,6 @@ export default function Profile() {
         <div className="profile-section">
           <h2>Driver's License</h2>
           <div className="profile-form">
-            <label htmlFor="driversLicenseNumber">License Number</label>
-            <input
-              id="driversLicenseNumber"
-              type="text"
-              value={driversLicenseNumber}
-              onChange={(e) => setDriversLicenseNumber(e.target.value)}
-              placeholder="License number"
-            />
-
             <label htmlFor="licenseState">State (optional)</label>
             <input
               id="licenseState"
@@ -293,6 +289,21 @@ export default function Profile() {
               onChange={(e) => setLicenseState(e.target.value.toUpperCase())}
               placeholder="e.g. FL"
               maxLength={2}
+            />
+
+            <label htmlFor="driversLicenseNumber">License Number</label>
+            <input
+              id="driversLicenseNumber"
+              type="text"
+              value={driversLicenseNumber}
+              onChange={(e) => {
+                const raw = e.target.value;
+                setDriversLicenseNumber(
+                  isFloridaLicense ? formatDriversLicenseNumber(raw, driversLicenseNumber) : raw
+                );
+              }}
+              placeholder={isFloridaLicense ? "C716-767-22-1-102" : "License number"}
+              maxLength={isFloridaLicense ? 17 : undefined}
             />
 
             <label htmlFor="licenseExpiration">Expiration Date</label>
