@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import paymentsRouter from "./routes/payments";
 import verificationRouter from "./routes/verification.routes";
 import webhookRouter from "./routes/webhook.routes";
+import { startCancelExpiredBookingsJob } from "./jobs/cancelExpiredBookings";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use("/api/verification", verificationRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  startCancelExpiredBookingsJob();
 });
 
 export default app;
