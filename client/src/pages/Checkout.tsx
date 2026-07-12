@@ -151,6 +151,15 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
         {processing ? "Processing..." : `Pay $${bookingData.amountDueNow}`}
       </button>
 
+      <button
+        type="button"
+        className="cancel-btn"
+        onClick={() => navigate("/vehicle")}
+        disabled={processing}
+      >
+        Cancel
+      </button>
+
       <p className="secure-note">🔒 Payments are securely processed by Stripe</p>
     </form>
   );

@@ -183,7 +183,30 @@
     opacity: 0.6;
     cursor: not-allowed;
   }
-  
+
+  .cancel-btn {
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #888;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .cancel-btn:hover:not(:disabled) {
+    border-color: #aaa;
+    color: #444;
+  }
+
+  .cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .secure-note {
     text-align: center;
     font-size: 13px;
