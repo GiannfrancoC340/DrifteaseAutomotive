@@ -23,10 +23,15 @@ export default function LicenseVerification({ onStatusChange }: LicenseVerificat
   const [status, setStatus] = useState<VerificationStatus>("loading");
   const [error, setError] = useState("");
   const [starting, setStarting] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+  const [pollCycle, setPollCycle] = useState(0);
 
   const updateStatus = useCallback(
     (next: VerificationStatus) => {
       setStatus(next);
+      if (next !== "pending" && next !== "processing") {
+        setTimedOut(false);
+      }
       onStatusChange?.(next);
     },
     [onStatusChange]
@@ -54,6 +59,7 @@ export default function LicenseVerification({ onStatusChange }: LicenseVerificat
 
   // While pending/processing, poll every 3s for up to ~30s so the UI
   // catches the webhook update without the user needing to refresh.
+  // pollCycle lets a retry restart this even if status stays "pending".
   useEffect(() => {
     if (status !== "pending" && status !== "processing") return;
 
@@ -61,16 +67,20 @@ export default function LicenseVerification({ onStatusChange }: LicenseVerificat
     const interval = setInterval(() => {
       attempts += 1;
       fetchStatus();
-      if (attempts >= 10) clearInterval(interval);
+      if (attempts >= 10) {
+        clearInterval(interval);
+        setTimedOut(true);
+      }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [status, fetchStatus]);
+  }, [status, pollCycle, fetchStatus]);
 
   async function handleVerify() {
     if (!stripe || !currentUser) return;
     setError("");
     setStarting(true);
+    setTimedOut(false);
 
     try {
       const token = await currentUser.getIdToken();
@@ -106,6 +116,7 @@ export default function LicenseVerification({ onStatusChange }: LicenseVerificat
       // Webhook updates Firestore async - re-check status now and let
       // the polling effect above pick up the eventual verified state
       await fetchStatus();
+      setPollCycle((c) => c + 1);
     } catch (err) {
       console.error("Verification error:", err);
       setError("Something went wrong starting verification.");
@@ -133,6 +144,39 @@ export default function LicenseVerification({ onStatusChange }: LicenseVerificat
   }
 
   if (status === "pending" || status === "processing") {
+    if (timedOut) {
+      return (
+        <div className="checkout-section">
+          <h2>Driver's License</h2>
+          <p className="checkout-note">
+            This is taking longer than expected. You can check again, or retry
+            verification if the previous attempt didn't go through.
+          </p>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              type="button"
+              className="pay-btn"
+              onClick={() => {
+                setTimedOut(false);
+                setPollCycle((c) => c + 1);
+                fetchStatus();
+              }}
+            >
+              Check Again
+            </button>
+            <button
+              type="button"
+              className="pay-btn"
+              onClick={handleVerify}
+              disabled={!stripe || starting}
+            >
+              {starting ? "Starting..." : "Retry Verification"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="checkout-section">
         <h2>Driver's License</h2>
