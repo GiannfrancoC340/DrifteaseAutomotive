@@ -12,6 +12,8 @@ import Checkout from "./pages/Checkout";
 import Confirmation from "./pages/Confirmation";
 import Profile from "./pages/Profile";
 import BookingDetail from "./pages/BookingDetail";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 import "./App.css";
 
 function App() {
@@ -79,6 +81,14 @@ function App() {
                 <h1>404 - Page Not Found</h1>
               </div>
             } 
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
           />
         </Routes>
       </AuthProvider>

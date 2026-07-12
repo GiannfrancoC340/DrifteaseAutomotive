@@ -7,7 +7,7 @@ import "./Navbar.css";
 const HIDE_ON = ["/", "/login", "/signup"];
 
 export default function Navbar() {
-  const { currentUser } = useAuth();
+  const { currentUser, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,6 +27,9 @@ export default function Navbar() {
             <Link to="/vehicle">View Car</Link>
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/profile">Profile</Link>
+            {isAdmin && (
+              <Link to="/admin" className="navbar-admin">Admin</Link>
+            )}
             <button className="navbar-logout" onClick={handleLogout}>Log Out</button>
           </>
         ) : (
