@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { generateBookingId } from "../lib/generateId";
+import LicenseVerification from "../components/LicenseVerification";
 import "./Checkout.css";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -31,7 +32,7 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
     }
 
     if (!licenseUploaded) {
-      setError("You must confirm your driver's license has been uploaded");
+      setError("You must complete driver's license verification before proceeding");
       return;
     }
 
@@ -91,26 +92,8 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
   return (
     <form onSubmit={handleSubmit} className="checkout-form">
 
-      {/* Driver's License Upload */}
-      <div className="checkout-section">
-        <h2>Driver's License</h2>
-        <p className="checkout-note">
-          Upload a clear photo of the front and back of your driver's license.
-          This is required before your booking can be approved.
-        </p>
-        <div className="upload-placeholder">
-          <p>📎 License upload coming soon</p>
-          <p className="upload-sub">For now, confirm you have it ready</p>
-        </div>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={licenseUploaded}
-            onChange={(e) => setLicenseUploaded(e.target.checked)}
-          />
-          I confirm I have a valid driver's license and will provide it upon request
-        </label>
-      </div>
+      {/* Driver's License Verification */}
+      <LicenseVerification onStatusChange={(status) => setLicenseUploaded(status === "verified")} />
 
       {/* Rental Agreement */}
       <div className="checkout-section">
@@ -177,6 +160,7 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [clientSecret, setClientSecret] = useState("");
   const [error, setError] = useState("");
 
@@ -190,9 +174,13 @@ export default function Checkout() {
   useEffect(() => {
     async function createPaymentIntent() {
       try {
+        const token = await currentUser?.getIdToken();
         const res = await fetch("http://localhost:5001/api/payments/create-payment-intent", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ amount: bookingData.amountDueNow }),
         });
         const data = await res.json();

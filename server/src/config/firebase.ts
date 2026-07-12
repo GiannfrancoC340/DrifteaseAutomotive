@@ -1,4 +1,7 @@
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Only initialize once - prevents "app already exists" errors if this
 // module gets imported in multiple places (which it will).
