@@ -13,6 +13,7 @@ import Confirmation from "./pages/Confirmation";
 import Profile from "./pages/Profile";
 import BookingDetail from "./pages/BookingDetail";
 import AdminDashboard from "./pages/AdminDashboard";
+import RenterDetail from "./pages/RenterDetail";
 import AdminRoute from "./components/AdminRoute";
 import "./App.css";
 
@@ -87,6 +88,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/renter/:uid"
+            element={
+              <AdminRoute>
+                <RenterDetail />
               </AdminRoute>
             }
           />

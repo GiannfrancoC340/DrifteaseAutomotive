@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAdminBookings } from "../hooks/useAdminBookings";
 import type { AdminBooking } from "../hooks/useAdminBookings";
 import { useAdminRenters } from "../hooks/useAdminRenters";
-import type { RenterProfile } from "../hooks/useAdminRenters";
 import "./Dashboard.css";
 
 function StatusBadge({ status }: { status: string }) {
@@ -223,112 +223,13 @@ function BookingsView() {
   );
 }
 
-function RenterDetailPanel({
-  renter,
-  onOverride,
-  onClose,
-}: {
-  renter: RenterProfile;
-  onOverride: (uid: string, status: "verified" | "failed") => Promise<void>;
-  onClose: () => void;
-}) {
-  const [updating, setUpdating] = useState(false);
-  const licenseStatus = renter.licenseVerification?.status || "not_started";
-
-  async function handleOverride(status: "verified" | "failed") {
-    setUpdating(true);
-    try {
-      await onOverride(renter.uid, status);
-    } catch {
-      // error already logged in the hook
-    } finally {
-      setUpdating(false);
-    }
-  }
-
-  return (
-    <div className="booking-card" style={{ marginTop: "1rem" }}>
-      <div className="booking-card-header">
-        <span className="booking-card-id">{renter.fullName || renter.email}</span>
-        <button className="navbar-logout" onClick={onClose} style={{ padding: "4px 12px" }}>
-          Close
-        </button>
-      </div>
-      <div className="booking-card-body">
-        <div className="booking-card-row">
-          <span>Email</span>
-          <span>{renter.email || "—"}</span>
-        </div>
-        <div className="booking-card-row">
-          <span>Phone</span>
-          <span>{renter.phone || "Not added"}</span>
-        </div>
-        <div className="booking-card-row">
-          <span>User ID</span>
-          <span>{renter.customUserId || "—"}</span>
-        </div>
-        <div className="booking-card-row">
-          <span>Member Since</span>
-          <span>
-            {renter.createdAt
-              ? new Date(renter.createdAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "—"}
-          </span>
-        </div>
-        <div className="booking-card-row">
-          <span>License Status</span>
-          <LicenseBadge status={licenseStatus} />
-        </div>
-        {renter.licenseVerification?.manualOverride && (
-          <div className="booking-card-row">
-            <span>Manually Reviewed By</span>
-            <span>{renter.licenseVerification.reviewedBy}</span>
-          </div>
-        )}
-        {renter.licenseVerification?.failureReason && (
-          <div className="booking-card-row">
-            <span>Failure Reason</span>
-            <span>{renter.licenseVerification.failureReason}</span>
-          </div>
-        )}
-      </div>
-      <div className="booking-card-actions" style={{ display: "flex", gap: "0.5rem" }}>
-        <button
-          className="pay-btn"
-          disabled={updating || licenseStatus === "verified"}
-          onClick={() => handleOverride("verified")}
-        >
-          {updating ? "Updating..." : "Mark Verified"}
-        </button>
-        <button
-          className="pay-btn"
-          disabled={updating || licenseStatus === "failed"}
-          onClick={() => handleOverride("failed")}
-        >
-          {updating ? "Updating..." : "Mark Failed"}
-        </button>
-      </div>
-      <p className="checkout-note" style={{ marginTop: "0.75rem" }}>
-        Manual overrides bypass Stripe Identity and should only be used when
-        verification was completed through another trusted method.
-      </p>
-    </div>
-  );
-}
-
 function RentersView() {
-  const { renters, loading, error, overrideLicenseStatus } = useAdminRenters();
-  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const { renters, loading, error } = useAdminRenters();
+  const navigate = useNavigate();
 
   if (loading) {
     return <div className="dashboard-loading">Loading renters...</div>;
   }
-
-  const selectedRenter = renters.find((r) => r.uid === selectedUid) || null;
 
   return (
     <>
@@ -348,9 +249,7 @@ function RentersView() {
                 key={renter.uid}
                 className="booking-card"
                 style={{ cursor: "pointer" }}
-                onClick={() =>
-                  setSelectedUid(selectedUid === renter.uid ? null : renter.uid)
-                }
+                onClick={() => navigate(`/admin/renter/${renter.uid}`)}
               >
                 <div className="booking-card-header">
                   <span className="booking-card-id">
@@ -373,14 +272,6 @@ function RentersView() {
           </div>
         )}
       </div>
-
-      {selectedRenter && (
-        <RenterDetailPanel
-          renter={selectedRenter}
-          onOverride={overrideLicenseStatus}
-          onClose={() => setSelectedUid(null)}
-        />
-      )}
     </>
   );
 }
