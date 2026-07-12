@@ -6,6 +6,7 @@ import { db, auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import { MIN_RENTAL_AGE, calculateAge } from "../lib/renterEligibility";
 import "./Profile.css";
 
 export default function Profile() {
@@ -16,19 +17,35 @@ export default function Profile() {
   const [phone, setPhone] = useState<string>("");
   const [customUserId, setCustomUserId] = useState("");
   const [memberSince, setMemberSince] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [driversLicenseNumber, setDriversLicenseNumber] = useState("");
+  const [licenseState, setLicenseState] = useState("");
+  const [licenseExpiration, setLicenseExpiration] = useState("");
 
   // Original values to compare against
   const [originalName, setOriginalName] = useState("");
   const [originalPhone, setOriginalPhone] = useState("");
+  const [originalDob, setOriginalDob] = useState("");
+  const [originalLicenseNumber, setOriginalLicenseNumber] = useState("");
+  const [originalLicenseState, setOriginalLicenseState] = useState("");
+  const [originalLicenseExpiration, setOriginalLicenseExpiration] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [dobError, setDobError] = useState("");
+  const [licenseExpirationError, setLicenseExpirationError] = useState("");
 
   // Dirty state — true if user has unsaved changes
-  const isDirty = fullName !== originalName || phone !== originalPhone;
+  const isDirty =
+    fullName !== originalName ||
+    phone !== originalPhone ||
+    dateOfBirth !== originalDob ||
+    driversLicenseNumber !== originalLicenseNumber ||
+    licenseState !== originalLicenseState ||
+    licenseExpiration !== originalLicenseExpiration;
 
   // Warn on browser refresh/close if dirty
   useEffect(() => {
@@ -52,8 +69,17 @@ export default function Profile() {
           setPhone(data.phone || "");
           setCustomUserId(data.customUserId || "");
           setMemberSince(data.createdAt || "");
+          setDateOfBirth(data.dateOfBirth || "");
+          setDriversLicenseNumber(data.driversLicenseNumber || "");
+          setLicenseState(data.licenseState || "");
+          setLicenseExpiration(data.licenseExpiration || "");
+
           setOriginalName(data.fullName || "");
           setOriginalPhone(data.phone || "");
+          setOriginalDob(data.dateOfBirth || "");
+          setOriginalLicenseNumber(data.driversLicenseNumber || "");
+          setOriginalLicenseState(data.licenseState || "");
+          setOriginalLicenseExpiration(data.licenseExpiration || "");
         }
       } catch (err) {
         console.error(err);
@@ -67,30 +93,76 @@ export default function Profile() {
   async function handleSave() {
     if (!currentUser) return;
 
+    setPhoneError("");
+    setDobError("");
+    setLicenseExpirationError("");
+
     // Validate phone if provided
     if (phone && !isValidPhoneNumber(phone)) {
       setPhoneError("Please enter a valid phone number");
       return;
     }
 
+    // Validate DOB if provided - can't be in the future, can't be under
+    // the minimum rental age. Left optional at the field level; Book.tsx
+    // enforces it as required before checkout.
+    if (dateOfBirth) {
+      const dob = new Date(dateOfBirth);
+      if (dob > new Date()) {
+        setDobError("Date of birth can't be in the future");
+        return;
+      }
+      if (calculateAge(dateOfBirth) < MIN_RENTAL_AGE) {
+        setDobError(`You must be at least ${MIN_RENTAL_AGE} years old to rent`);
+        return;
+      }
+    }
+
+    // License expiration can be saved even if already expired (so the
+    // record is accurate) - Book.tsx blocks checkout on an expired license,
+    // this just catches an obviously malformed date here.
+    if (licenseExpiration && isNaN(new Date(licenseExpiration).getTime())) {
+      setLicenseExpirationError("Please enter a valid date");
+      return;
+    }
+
     setSaving(true);
     setError("");
     setSuccess(false);
-    setPhoneError("");
 
     try {
-      await updateDoc(doc(db, "users", currentUser.uid), { fullName, phone });
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        fullName,
+        phone,
+        dateOfBirth,
+        driversLicenseNumber,
+        licenseState,
+        licenseExpiration,
+      });
       await updateProfile(auth.currentUser!, { displayName: fullName });
 
       // Update originals so dirty state resets
       setOriginalName(fullName);
       setOriginalPhone(phone);
+      setOriginalDob(dateOfBirth);
+      setOriginalLicenseNumber(driversLicenseNumber);
+      setOriginalLicenseState(licenseState);
+      setOriginalLicenseExpiration(licenseExpiration);
       setSuccess(true);
     } catch (err) {
       setError("Failed to save changes. Please try again.");
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleDiscard() {
+    setFullName(originalName);
+    setPhone(originalPhone);
+    setDateOfBirth(originalDob);
+    setDriversLicenseNumber(originalLicenseNumber);
+    setLicenseState(originalLicenseState);
+    setLicenseExpiration(originalLicenseExpiration);
   }
 
   function handleBack() {
@@ -126,10 +198,7 @@ export default function Profile() {
           <div className="unsaved-banner">
             ⚠️ You have unsaved changes
             <div className="unsaved-actions">
-              <button className="unsaved-discard" onClick={() => {
-                setFullName(originalName);
-                setPhone(originalPhone);
-              }}>
+              <button className="unsaved-discard" onClick={handleDiscard}>
                 Discard
               </button>
               <button className="unsaved-save" onClick={handleSave} disabled={saving}>
@@ -189,6 +258,56 @@ export default function Profile() {
               className="phone-input-wrapper"
             />
             {phoneError && <p className="field-error">{phoneError}</p>}
+
+            <label htmlFor="dateOfBirth">Date of Birth</label>
+            <input
+              id="dateOfBirth"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => {
+                setDateOfBirth(e.target.value);
+                setDobError("");
+              }}
+            />
+            {dobError && <p className="field-error">{dobError}</p>}
+          </div>
+        </div>
+
+        <div className="profile-section">
+          <h2>Driver's License</h2>
+          <div className="profile-form">
+            <label htmlFor="driversLicenseNumber">License Number</label>
+            <input
+              id="driversLicenseNumber"
+              type="text"
+              value={driversLicenseNumber}
+              onChange={(e) => setDriversLicenseNumber(e.target.value)}
+              placeholder="License number"
+            />
+
+            <label htmlFor="licenseState">State (optional)</label>
+            <input
+              id="licenseState"
+              type="text"
+              value={licenseState}
+              onChange={(e) => setLicenseState(e.target.value.toUpperCase())}
+              placeholder="e.g. FL"
+              maxLength={2}
+            />
+
+            <label htmlFor="licenseExpiration">Expiration Date</label>
+            <input
+              id="licenseExpiration"
+              type="date"
+              value={licenseExpiration}
+              onChange={(e) => {
+                setLicenseExpiration(e.target.value);
+                setLicenseExpirationError("");
+              }}
+            />
+            {licenseExpirationError && (
+              <p className="field-error">{licenseExpirationError}</p>
+            )}
           </div>
         </div>
 

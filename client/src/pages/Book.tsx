@@ -3,6 +3,12 @@ import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import {
+  MIN_RENTAL_AGE,
+  isUnderMinimumAge,
+  isLicenseExpiredBy,
+  maskLicenseNumber,
+} from "../lib/renterEligibility";
 import "./Book.css";
 
 export default function Book() {
@@ -12,16 +18,25 @@ export default function Book() {
   const [paymentOption, setPaymentOption] = useState<"full" | "deposit">("full");
   const [depositPercent, setDepositPercent] = useState(30);
   const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [driversLicenseNumber, setDriversLicenseNumber] = useState("");
+  const [licenseExpiration, setLicenseExpiration] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPhone() {
+    async function fetchProfile() {
       if (!currentUser) return;
       const snap = await getDoc(doc(db, "users", currentUser.uid));
       if (snap.exists()) {
-        setPhone(snap.data().phone || "");
+        const data = snap.data();
+        setPhone(data.phone || "");
+        setDateOfBirth(data.dateOfBirth || "");
+        setDriversLicenseNumber(data.driversLicenseNumber || "");
+        setLicenseExpiration(data.licenseExpiration || "");
       }
+      setProfileLoading(false);
     }
-    fetchPhone();
+    fetchProfile();
   }, [currentUser]);
 
   const { startDate, endDate, totalPrice } = location.state || {};
@@ -39,7 +54,22 @@ export default function Book() {
   const remainingAmount = totalPrice - depositAmount;
   const amountDueNow = paymentOption === "full" ? totalPrice : depositAmount;
 
+  // Eligibility checks - DOB and license are required before checkout
+  const missingDob = !dateOfBirth;
+  const missingLicense = !driversLicenseNumber || !licenseExpiration;
+  const underage = dateOfBirth ? isUnderMinimumAge(dateOfBirth) : false;
+  const licenseExpiredBeforeReturn =
+    licenseExpiration ? isLicenseExpiredBy(licenseExpiration, end) : false;
+
+  const canProceed =
+    !profileLoading &&
+    !missingDob &&
+    !missingLicense &&
+    !underage &&
+    !licenseExpiredBeforeReturn;
+
   function handleProceed() {
+    if (!canProceed) return;
     navigate("/checkout", {
       state: {
         startDate,
@@ -176,6 +206,52 @@ export default function Book() {
               <span>Phone</span>
               <span>{phone || "—"}</span>
             </div>
+            <div className="summary-row">
+              <span>Date of Birth</span>
+              <span>
+                {dateOfBirth ? (
+                  new Date(dateOfBirth).toLocaleDateString("en-US", {
+                    month: "long", day: "numeric", year: "numeric",
+                  })
+                ) : (
+                  <span className="field-warning">
+                    Missing — <a href="/profile">add in Profile</a>
+                  </span>
+                )}
+                {dateOfBirth && underage && (
+                  <span className="field-warning"> (under {MIN_RENTAL_AGE})</span>
+                )}
+              </span>
+            </div>
+            <div className="summary-row">
+              <span>Driver's License</span>
+              <span>
+                {driversLicenseNumber ? (
+                  maskLicenseNumber(driversLicenseNumber)
+                ) : (
+                  <span className="field-warning">
+                    Missing — <a href="/profile">add in Profile</a>
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="summary-row">
+              <span>License Expiration</span>
+              <span>
+                {licenseExpiration ? (
+                  new Date(licenseExpiration).toLocaleDateString("en-US", {
+                    month: "long", day: "numeric", year: "numeric",
+                  })
+                ) : (
+                  <span className="field-warning">
+                    Missing — <a href="/profile">add in Profile</a>
+                  </span>
+                )}
+                {licenseExpiration && licenseExpiredBeforeReturn && (
+                  <span className="field-warning"> (expires before return)</span>
+                )}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -197,7 +273,30 @@ export default function Book() {
             <span>Due today</span>
             <span className="cta-amount">${amountDueNow}</span>
           </div>
-          <button className="proceed-btn" onClick={handleProceed}>
+          {!canProceed && !profileLoading && (
+            <p className="field-warning" style={{ marginBottom: "10px", display: "block" }}>
+              {missingDob || missingLicense ? (
+                <>
+                  Complete your date of birth and driver's license info in{" "}
+                  <a href="/profile">Profile</a> before continuing.
+                </>
+              ) : underage ? (
+                `You must be at least ${MIN_RENTAL_AGE} years old to rent.`
+              ) : licenseExpiredBeforeReturn ? (
+                <>
+                  Your license expires before your return date. Please update
+                  it in <a href="/profile">Profile</a> or select different
+                  trip dates.
+                </>
+              ) : null}
+            </p>
+          )}
+          <button
+            className="proceed-btn"
+            onClick={handleProceed}
+            disabled={!canProceed}
+            style={!canProceed ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
+          >
             Continue to Payment →
           </button>
           <button className="back-btn" onClick={() => navigate("/vehicle")}>

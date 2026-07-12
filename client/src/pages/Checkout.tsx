@@ -102,7 +102,7 @@ function CheckoutForm({ bookingData }: { bookingData: any }) {
           <p><strong>Driftease Automotive LLC — Rental Agreement Summary</strong></p>
           <p>By proceeding, you agree to the following terms:</p>
           <ul>
-            <li>You are at least 21 years of age and hold a valid driver's license</li>
+            <li>You are at least 18 years of age and hold a valid driver's license</li>
             <li>You will return the vehicle with the same fuel level</li>
             <li>No smoking or pets inside the vehicle</li>
             <li>You are responsible for any damage beyond normal wear and tear</li>
