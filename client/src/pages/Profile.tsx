@@ -12,6 +12,7 @@ import {
   formatDriversLicenseNumber,
   getLicenseFormat,
   getLicenseInputMaxLength,
+  isValidLicenseNumberForState,
   US_STATES,
 } from "../lib/renterEligibility";
 import "./Profile.css";
@@ -44,6 +45,7 @@ export default function Profile() {
   const [phoneError, setPhoneError] = useState("");
   const [dobError, setDobError] = useState("");
   const [licenseExpirationError, setLicenseExpirationError] = useState("");
+  const [licenseNumberError, setLicenseNumberError] = useState("");
 
   // Dirty state — true if user has unsaved changes
   const isDirty =
@@ -103,6 +105,7 @@ export default function Profile() {
     setPhoneError("");
     setDobError("");
     setLicenseExpirationError("");
+    setLicenseNumberError("");
 
     // Validate phone if provided
     if (phone && !isValidPhoneNumber(phone)) {
@@ -130,6 +133,20 @@ export default function Profile() {
     // this just catches an obviously malformed date here.
     if (licenseExpiration && isNaN(new Date(licenseExpiration).getTime())) {
       setLicenseExpirationError("Please enter a valid date");
+      return;
+    }
+
+    // Validate the license number against the selected state's known
+    // format(s) - skipped entirely if no state is selected.
+    if (
+      driversLicenseNumber &&
+      licenseState &&
+      !isValidLicenseNumberForState(driversLicenseNumber, licenseState)
+    ) {
+      const format = getLicenseFormat(licenseState);
+      setLicenseNumberError(
+        `That doesn't look like a valid ${licenseState} license number (expected ${format?.description}).`
+      );
       return;
     }
 
@@ -294,6 +311,7 @@ export default function Profile() {
                 setDriversLicenseNumber((prev) =>
                   formatDriversLicenseNumber(prev, prev, e.target.value)
                 );
+                setLicenseNumberError("");
               }}
             >
               <option value="">Select state</option>
@@ -311,6 +329,7 @@ export default function Profile() {
               value={driversLicenseNumber}
               onChange={(e) => {
                 const raw = e.target.value;
+                setLicenseNumberError("");
                 setDriversLicenseNumber(
                   formatDriversLicenseNumber(raw, driversLicenseNumber, licenseState)
                 );
@@ -318,6 +337,7 @@ export default function Profile() {
               placeholder={licenseState === "FL" ? "C716-767-22-1-102" : "License number"}
               maxLength={getLicenseInputMaxLength(licenseFormat)}
             />
+            {licenseNumberError && <p className="field-error">{licenseNumberError}</p>}
 
             <label htmlFor="licenseExpiration">Expiration Date</label>
             <input
